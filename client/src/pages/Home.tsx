@@ -14,12 +14,31 @@ import { PostWithDetails } from '@shared/schema';
 export default function Home() {
   const [selectedPost, setSelectedPost] = useState<PostWithDetails | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch posts
+  // Listen for search events from header
+  useEffect(() => {
+    const handleSearch = (e: CustomEvent) => {
+      setSearchQuery(e.detail);
+    };
+    window.addEventListener('search', handleSearch as EventListener);
+    return () => window.removeEventListener('search', handleSearch as EventListener);
+  }, []);
+
+  // Fetch posts with search
   const { data: posts = [], isLoading } = useQuery({
-    queryKey: ['/api/posts'],
+    queryKey: ['/api/posts', { search: searchQuery }],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (searchQuery) params.append('search', searchQuery);
+      const response = await fetch(`/api/posts?${params.toString()}`, {
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('Failed to fetch posts');
+      return response.json();
+    },
     retry: false,
   });
 

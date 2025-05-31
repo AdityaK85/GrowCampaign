@@ -3,6 +3,7 @@ import {
   posts,
   likes,
   shareLogs,
+  notifications,
   type User,
   type UpsertUser,
   type Post,
@@ -10,6 +11,8 @@ import {
   type PostWithDetails,
   type InsertLike,
   type InsertShareLog,
+  type Notification,
+  type InsertNotification,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, sql, or, like } from "drizzle-orm";

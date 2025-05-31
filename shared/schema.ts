@@ -66,11 +66,26 @@ export const shareLogs = pgTable("share_logs", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Notifications table
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  type: varchar("type", { length: 50 }).notNull(), // 'like', 'share', 'comment', etc.
+  title: varchar("title", { length: 255 }).notNull(),
+  message: text("message").notNull(),
+  postId: integer("post_id").references(() => posts.id),
+  fromUserId: varchar("from_user_id").references(() => users.id),
+  isRead: boolean("is_read").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   posts: many(posts),
   likes: many(likes),
   shareLogs: many(shareLogs),
+  notifications: many(notifications),
+  sentNotifications: many(notifications, { relationName: "sentNotifications" }),
 }));
 
 export const postsRelations = relations(posts, ({ one, many }) => ({
@@ -104,6 +119,22 @@ export const shareLogsRelations = relations(shareLogs, ({ one }) => ({
   }),
 }));
 
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  user: one(users, {
+    fields: [notifications.userId],
+    references: [users.id],
+  }),
+  post: one(posts, {
+    fields: [notifications.postId],
+    references: [posts.id],
+  }),
+  fromUser: one(users, {
+    fields: [notifications.fromUserId],
+    references: [users.id],
+    relationName: "sentNotifications",
+  }),
+}));
+
 // Schemas for validation
 export const insertPostSchema = createInsertSchema(posts).omit({
   id: true,
@@ -125,6 +156,11 @@ export const insertShareLogSchema = createInsertSchema(shareLogs).omit({
   createdAt: true,
 });
 
+export const insertNotificationSchema = createInsertSchema(notifications).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -134,6 +170,8 @@ export type Like = typeof likes.$inferSelect;
 export type InsertLike = z.infer<typeof insertLikeSchema>;
 export type ShareLog = typeof shareLogs.$inferSelect;
 export type InsertShareLog = z.infer<typeof insertShareLogSchema>;
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 
 // Extended types for API responses
 export type PostWithDetails = Post & {
