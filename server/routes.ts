@@ -1,4 +1,5 @@
 import type { Express } from "express";
+import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
@@ -37,7 +38,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.setHeader("Cache-Control", "public, max-age=31536000");
     next();
   });
-  app.use("/uploads", require("express").static(uploadDir));
+  app.use("/uploads", express.static(uploadDir));
 
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {

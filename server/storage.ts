@@ -142,7 +142,7 @@ export class DatabaseStorage implements IStorage {
       .delete(posts)
       .where(and(eq(posts.id, id), eq(posts.userId, userId)));
     
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Like operations
