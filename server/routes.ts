@@ -57,8 +57,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const limit = parseInt(req.query.limit as string) || 20;
       const offset = parseInt(req.query.offset as string) || 0;
+      const search = req.query.search as string;
       
-      const posts = await storage.getPosts(limit, offset);
+      const posts = await storage.getPosts(limit, offset, search);
       res.json(posts);
     } catch (error) {
       console.error("Error fetching posts:", error);

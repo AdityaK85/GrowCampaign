@@ -12,7 +12,7 @@ import {
   type InsertShareLog,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, sql } from "drizzle-orm";
+import { eq, desc, and, sql, or, like } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (required for Replit Auth)
@@ -21,7 +21,7 @@ export interface IStorage {
   
   // Post operations
   createPost(post: InsertPost & { userId: string }): Promise<Post>;
-  getPosts(limit?: number, offset?: number): Promise<PostWithDetails[]>;
+  getPosts(limit?: number, offset?: number, search?: string): Promise<PostWithDetails[]>;
   getPost(id: number): Promise<PostWithDetails | undefined>;
   deletePost(id: number, userId: string): Promise<boolean>;
   
@@ -63,8 +63,8 @@ export class DatabaseStorage implements IStorage {
     return post;
   }
 
-  async getPosts(limit = 20, offset = 0): Promise<PostWithDetails[]> {
-    const result = await db
+  async getPosts(limit = 20, offset = 0, search?: string): Promise<PostWithDetails[]> {
+    let baseQuery = db
       .select({
         id: posts.id,
         userId: posts.userId,
@@ -88,7 +88,19 @@ export class DatabaseStorage implements IStorage {
       })
       .from(posts)
       .leftJoin(users, eq(posts.userId, users.id))
-      .leftJoin(likes, eq(posts.id, likes.postId))
+      .leftJoin(likes, eq(posts.id, likes.postId));
+
+    if (search) {
+      baseQuery = baseQuery.where(
+        or(
+          like(posts.title, `%${search}%`),
+          like(posts.description, `%${search}%`),
+          like(posts.hashtags, `%${search}%`)
+        )
+      );
+    }
+
+    const result = await baseQuery
       .groupBy(posts.id, users.id)
       .orderBy(desc(posts.createdAt))
       .limit(limit)

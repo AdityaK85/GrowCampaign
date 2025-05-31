@@ -12,6 +12,12 @@ export default function Header() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Trigger search by updating the query in the URL or parent component
+    window.dispatchEvent(new CustomEvent('search', { detail: searchQuery }));
+  };
+
   const displayName = user?.firstName && user?.lastName 
     ? `${user.firstName} ${user.lastName}`
     : user?.email || 'User';
@@ -35,7 +41,7 @@ export default function Header() {
 
             {/* Search Bar */}
             <div className="flex-1 max-w-lg mx-8">
-              <div className="relative">
+              <form onSubmit={handleSearch} className="relative">
                 <Input
                   type="text"
                   placeholder="Search for ideas..."
@@ -44,7 +50,7 @@ export default function Header() {
                   className="w-full pl-10 bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded-full"
                 />
                 <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
-              </div>
+              </form>
             </div>
 
             {/* Navigation */}
