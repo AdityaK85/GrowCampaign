@@ -1,0 +1,114 @@
+“GrowCampaign” Application (Django + Frontend)
+🎯 Objective:
+Build a full-stack application named GrowCampaign where users can create and engage with visually-rich posts. The UI should be user-friendly, responsive, and inspired by Pinterest.
+
+💻 Backend (Django):
+Models:
+User (use Django's built-in AbstractUser)
+
+Post
+
+user (ForeignKey)
+
+title (CharField)
+
+description (TextField, optional)
+
+hashtags (CommaSeparated field or TextField)
+
+image (ImageField – accept all image sizes)
+
+link (URLField, optional)
+
+created_at (DateTimeField)
+
+notify_email (EmailField, optional)
+
+Like (ForeignKey to User and Post)
+
+ShareLog (log where and when a post is shared)
+
+Features:
+Email validation before saving (use validate_email)
+
+Send email notification if notify_email is valid and present
+
+Image uploads (via S3/Cloudinary or local media directory)
+
+Track likes (toggle like/unlike)
+
+Track shares (button to copy link / open in new tab with attribution text)
+
+Copyright overlay when shared
+
+🌐 Frontend (Pinterest-style UI):
+Use React.js or Django templates with HTMX or Vue.js based on preference.
+
+Pages:
+Home feed: Pinterest-like masonry grid layout for posts
+
+Post creation modal (triggered by a floating + button)
+
+Post detail view (on click)
+
+Dark & Light theme toggle (save preference in localStorage or DB)
+
+Responsive design (mobile/tablet/desktop)
+
+Features:
+Floating ➕ Plus Icon at bottom-right to open Create Post Modal
+
+Image upload and preview before submission
+
+Input fields:
+
+Title
+
+Hashtags
+
+Image upload
+
+Link (optional)
+
+Notify Email (optional) – validate using regex
+
+Buttons: Post, Cancel
+
+Share Button on each post:
+
+Generates a shareable link with ?ref=growcampaign
+
+Copy to clipboard
+
+Attribution watermark on image (© GrowCampaign)
+
+Like Button (filled or outline icon toggle)
+
+🎨 UI/UX Design:
+Use Tailwind CSS or Bootstrap 5
+
+Masonry layout like Pinterest (e.g., masonry.js, css columns, or react-masonry-css)
+
+Dark and Light theme toggle (e.g., 🌙 / ☀️ icon)
+
+Theme persisted via localStorage
+
+📦 Stack:
+Backend: Django 4.x, Django REST Framework (if using SPA frontend)
+
+Frontend: React.js / Django Templates + HTMX / Vue.js
+
+Auth: Django AllAuth or Custom Login/Register
+
+Storage: Django ImageField, Cloudinary (or S3 for production)
+
+Email: SMTP backend or SendGrid for email notifications
+
+📋 Bonus:
+Admin panel for moderating posts
+
+Infinite scrolling or pagination on homepage
+
+Display top trending hashtags
+
+Optional: Allow anonymous users to view, but restrict likes/posts to logged-in users
