@@ -51,7 +51,8 @@ export default function PostDetailModal({
             <img 
               src={post.imageUrl}
               alt={post.title}
-              className="w-full h-full object-cover"
+              className="w-full h-full"
+              style={{objectFit:'contain'}}
             />
           </div>
           
