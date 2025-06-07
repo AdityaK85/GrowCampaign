@@ -114,13 +114,13 @@ export default function SharedPostModal() {
           </div>
 
           {/* Share Button */}
-          <button
+          {/* <button
             className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-300"
             onClick={() => alert("Share action")}
             style={{width:'fit-content'}}
           >
             Share
-          </button>
+          </button> */}
         </div>
       </div>
       <div className="absolute bottom-4 text-center w-full text-sm text-gray-500 dark:text-gray-400">

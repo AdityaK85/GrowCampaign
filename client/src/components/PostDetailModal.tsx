@@ -103,7 +103,7 @@ export default function PostDetailModal({
 
             {/* Action Buttons */}
             <div className="flex items-center space-x-4 mb-6">
-              <Button
+              {/* <Button
                 onClick={onLike}
                 variant={post.isLiked ? "default" : "outline"}
                 className={`flex items-center space-x-2 ${
@@ -114,7 +114,7 @@ export default function PostDetailModal({
               >
                 <Heart className={`w-4 h-4 ${post.isLiked ? 'fill-current' : ''}`} />
                 <span>{post.likesCount}</span>
-              </Button>
+              </Button> */}
               <Button
                 onClick={handleShare}
                 variant="outline"

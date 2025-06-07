@@ -81,7 +81,7 @@ export default function PostCard({ post, onClick, onLike, onShare }: PostCardPro
         )}
         <div className="flex items-center justify-between" style={{gap:'12px'}} >
           <div className="flex items-center space-x-3">
-            <button 
+            {/* <button 
               onClick={handleLike}
               className={`flex items-center space-x-1 transition-colors ${
                 isLiked ? 'text-red-500' : 'text-gray-500 hover:text-red-500'
@@ -89,7 +89,7 @@ export default function PostCard({ post, onClick, onLike, onShare }: PostCardPro
             >
               <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
               <span className="text-sm">{likesCount}</span>
-            </button>
+            </button> */}
             <button 
               onClick={handleShare}
               className="flex items-center space-x-1 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
