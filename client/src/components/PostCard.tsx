@@ -52,64 +52,63 @@ export default function PostCard({ post, onClick, onLike, onShare }: PostCardPro
   };
 
   return (
-    <div 
-      className="break-inside-avoid bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 group cursor-pointer"
-      onClick={onClick}
-    >
-      <img 
-        src={post.imageUrl} 
-        alt={post.title}
-        className="w-full rounded-t-xl object-cover"
-        loading="lazy"
-      />
-      <div className="p-4">
-        <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{post.title}</h3>
-        {post.description && (
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{post.description}</p>
-        )}
-        {hashtags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-3">
-            {hashtags.map((tag, index) => (
-              <span 
-                key={index}
-                className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-xs rounded-full text-gray-600 dark:text-gray-300"
-              >
-                #{tag}
-              </span>
-            ))}
-          </div>
-        )}
-        <div className="flex items-center justify-between" style={{gap:'12px'}} >
-          <div className="flex items-center space-x-3">
-            {/* <button 
-              onClick={handleLike}
-              className={`flex items-center space-x-1 transition-colors ${
-                isLiked ? 'text-red-500' : 'text-gray-500 hover:text-red-500'
-              }`}
+  <div 
+    className="bg-white dark:bg-gray-900 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col"
+    onClick={onClick}
+  >
+    <img 
+      src={post.imageUrl} 
+      alt={post.title}
+      className="w-full h-52 object-cover"
+      loading="lazy"
+    />
+
+    <div className="p-4 flex flex-col gap-3">
+      <h3 className="font-semibold text-base text-gray-900 dark:text-white">
+        {post.title}
+      </h3>
+
+      {post.description && (
+        <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed line-clamp-3">
+          {post.description}
+        </p>
+      )}
+
+      {hashtags.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {hashtags.map((tag, index) => (
+            <span 
+              key={index}
+              className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs px-3 py-1 rounded-full"
             >
-              <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
-              <span className="text-sm">{likesCount}</span>
-            </button> */}
-            <button 
-              onClick={handleShare}
-              className="flex items-center space-x-1 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
-            >
-              <Share className="w-4 h-4" />
-              <span className="text-sm">Share</span>
-            </button>
-          </div>
-          <div className="flex items-center space-x-1">
-            {post.user.profileImageUrl && (
-              <img 
-                src={post.user.profileImageUrl}
-                alt="User avatar" 
-                className="w-6 h-6 rounded-full object-cover"
-              />
-            )}
-            <span className="text-xs text-gray-500">{displayName}</span>
-          </div>
+              #{tag}
+            </span>
+          ))}
+        </div>
+      )}
+
+      <div className="flex items-center justify-between mt-auto pt-2">
+        <button 
+          onClick={handleShare}
+          className="flex items-center gap-1 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-sm"
+        >
+          <Share className="w-4 h-4" />
+          <span>Share</span>
+        </button>
+
+        <div className="flex items-center gap-2">
+          {post.user.profileImageUrl && (
+            <img 
+              src={post.user.profileImageUrl}
+              alt="User avatar" 
+              className="w-6 h-6 rounded-full object-cover"
+            />
+          )}
+          <span className="text-xs text-gray-500">{displayName}</span>
         </div>
       </div>
     </div>
-  );
+  </div>
+);
+
 }
