@@ -7,9 +7,9 @@ import viteConfig from "../vite.config";
 import { nanoid } from "nanoid";
 import { fileURLToPath } from "url";
 
-const viteLogger = createLogger();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const viteLogger = createLogger();
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
