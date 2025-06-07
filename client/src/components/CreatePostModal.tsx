@@ -207,7 +207,7 @@ export default function CreatePostModal({ isOpen, onClose }: CreatePostModalProp
           </div>
 
           {/* Notify Email */}
-          <div>
+          {/* <div>
             <Label htmlFor="notifyEmail">Notification Email (Optional)</Label>
             <Input
               id="notifyEmail"
@@ -216,7 +216,7 @@ export default function CreatePostModal({ isOpen, onClose }: CreatePostModalProp
               onChange={(e) => setNotifyEmail(e.target.value)}
               placeholder="Get notified about interactions"
             />
-          </div>
+          </div> */}
 
           {/* Buttons */}
           <div className="flex space-x-3 pt-4">

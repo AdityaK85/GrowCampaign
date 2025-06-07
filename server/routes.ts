@@ -43,7 +43,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user?.id;
       const user = await storage.getUser(userId);
       res.json(user);
     } catch (error) {
@@ -67,6 +67,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Post routes
+  app.get("/api/my_post", async (req, res) => {
+    try {
+      const userIdParam = req.query.userId;
+      const user_id = typeof userIdParam === 'string' ? userIdParam : '';
+      const limit = parseInt(req.query.limit as string) || 20;
+      const offset = parseInt(req.query.offset as string) || 0;
+      const search = typeof req.query.search === 'string' ? req.query.search : undefined;
+
+      const posts = await storage.getPostsByUserId(user_id, limit, offset, search);
+      res.json(posts);
+    } catch (error) {
+      console.error("Error fetching posts:", error);
+      res.status(500).json({ message: "Failed to fetch posts" });
+    }
+  });
+
   app.get("/api/posts/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
@@ -83,9 +100,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/posts/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userIdParam = req.query.userId;
+
+      const userId = typeof userIdParam === 'string' ? userIdParam : null;
+      if (!userId) {
+        return res.status(400).json({ message: "Missing or invalid userId" });
+      }
+
+      // Optional: Check if the post exists
+      const post = await storage.getPost(id);
+      if (!post) {
+        return res.status(404).json({ message: "Post not found" });
+      }
+
+      // Perform the deletion with user check
+      const deleted = await storage.deletePost(id, userId);
+      if (!deleted) {
+        return res.status(403).json({ message: "You are not authorized to delete this post" });
+      }
+
+      res.status(200).json({ message: "Post deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      res.status(500).json({ message: "Failed to delete post" });
+    }
+  });
+
   app.post("/api/posts", isAuthenticated, upload.single("image"), async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      // const userId = req.user.claims.sub;
+      const userId = req.user?.id;
       
       if (!req.file) {
         return res.status(400).json({ message: "Image is required" });
@@ -124,7 +171,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/posts/:id", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      // const userId = req.user.claims.sub;
+      const userId = req.user?.id;
       const id = parseInt(req.params.id);
       
       const success = await storage.deletePost(id, userId);
@@ -143,7 +191,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Like routes
   app.post("/api/posts/:id/like", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      // const userId = req.user.claims.sub;
+      const userId = req.user?.id;
       const postId = parseInt(req.params.id);
       
       const result = await storage.toggleLike(postId, userId);
@@ -158,7 +207,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/posts/:id/share", async (req, res) => {
     try {
       const postId = parseInt(req.params.id);
-      const userId = (req as any).user?.claims?.sub || null;
+      const userId = (req as any).user?.id || null;
       
       const shareData = insertShareLogSchema.parse({
         postId,

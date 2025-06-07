@@ -35,6 +35,13 @@ export default function PostDetailModal({
     });
   };
 
+  const handleShare = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      // const shareUrl = `${window.location.origin}/shared-post?id=${post.id}`;
+      // navigator.clipboard.writeText(shareUrl);
+      onShare();
+    };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden">
@@ -64,14 +71,14 @@ export default function PostDetailModal({
                   <p className="text-sm text-gray-500">{formatDate(post.createdAt)}</p>
                 </div>
               </div>
-              <Button
+              {/* <Button
                 variant="ghost"
                 size="sm"
                 onClick={onClose}
                 className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
               >
                 <X className="w-5 h-5" />
-              </Button>
+              </Button> */}
             </div>
 
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3">{post.title}</h2>
@@ -109,7 +116,7 @@ export default function PostDetailModal({
                 <span>{post.likesCount}</span>
               </Button>
               <Button
-                onClick={onShare}
+                onClick={handleShare}
                 variant="outline"
                 className="flex items-center space-x-2"
               >

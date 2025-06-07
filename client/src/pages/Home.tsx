@@ -10,6 +10,7 @@ import MasonryGrid from '@/components/MasonryGrid';
 import PostDetailModal from '@/components/PostDetailModal';
 import CreatePostModal from '@/components/CreatePostModal';
 import { PostWithDetails } from '@shared/schema';
+import CryptoJS from "crypto-js";
 
 export default function Home() {
   const [selectedPost, setSelectedPost] = useState<PostWithDetails | null>(null);
@@ -87,21 +88,22 @@ export default function Home() {
     },
   });
 
+  const SECRET_KEY = "7e02195ac239df34b8e6cfe813a2c6ef51de9c6b3b6f5479d82facc0e21319aa";
   // Share mutation
   const shareMutation = useMutation({
     mutationFn: async (postId: number) => {
-      const response = await apiRequest('POST', `/api/posts/${postId}/share`, {
-        shareType: 'copy_link',
-        referrer: window.location.href,
-      });
-      return response.json();
+      // Encrypt post ID
+      const encryptedId = CryptoJS.AES.encrypt(postId.toString(), SECRET_KEY).toString();
+      const shareUrl = `${window.location.origin}/shared-post?id=${encodeURIComponent(encryptedId)}`;
+
+      return shareUrl;
     },
-    onSuccess: async (data) => {
+    onSuccess: async (url) => {
       try {
-        await navigator.clipboard.writeText(data.shareUrl);
+        await navigator.clipboard.writeText(url);
         toast({
           title: "Success",
-          description: "Link copied to clipboard!",
+          description: "The shareable link has been successfully copied to your clipboard.",
         });
       } catch (err) {
         toast({
@@ -111,7 +113,7 @@ export default function Home() {
         });
       }
     },
-    onError: (error) => {
+    onError: () => {
       toast({
         title: "Error",
         description: "Failed to generate share link.",

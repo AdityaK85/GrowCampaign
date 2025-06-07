@@ -5,11 +5,14 @@ import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from './ThemeProvider';
 import CreatePostModal from './CreatePostModal';
+import { LogOut, Eye } from 'lucide-react';
+import ViewPostsModal from './ViewPostsModal';
 
 export default function Header() {
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleSearch = (e: React.FormEvent) => {
@@ -54,13 +57,13 @@ export default function Header() {
             </div>
 
             {/* Navigation */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center gap-4">
               {/* Theme Toggle */}
               <Button
                 variant="ghost"
-                size="sm"
+                size="icon"
                 onClick={toggleTheme}
-                className="p-2 rounded-full"
+                className="rounded-full p-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition"
               >
                 {theme === 'dark' ? (
                   <Sun className="w-5 h-5 text-yellow-400" />
@@ -72,28 +75,29 @@ export default function Header() {
               {/* Create Post Button */}
               <Button
                 onClick={() => setIsCreateModalOpen(true)}
-                size="sm"
-                className="bg-red-600 hover:bg-red-700 text-white"
+                size="icon"
+                className="flex items-center gap-3 bg-gray-100 dark:bg-gray-800 px-3 text-white rounded-lg"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-5 h-5" />
               </Button>
 
-              {/* Notifications */}
+              {/* My Post Button (View Posts) */}
               <Button
                 variant="ghost"
                 size="sm"
-                className="p-2 rounded-full relative"
+                className="flex items-center gap-3 bg-gray-100 dark:bg-gray-800 px-3  rounded-lg"
+                onClick={() => setIsViewModalOpen(true)}
               >
-                <Bell className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-600 dark:bg-red-500 rounded-full"></span>
+                <Eye className="w-4 h-4" />
+                <span className="text-sm">My Post</span>
               </Button>
 
-              {/* Profile */}
-              <div className="flex items-center space-x-2">
+              {/* Profile Section */}
+              <div className="flex items-center gap-3 bg-gray-100 dark:bg-gray-800 px-3  rounded-lg">
                 {user?.profileImageUrl && (
-                  <img 
+                  <img
                     src={user.profileImageUrl}
-                    alt="Profile" 
+                    alt="Profile"
                     className="w-8 h-8 rounded-full object-cover"
                   />
                 )}
@@ -102,14 +106,15 @@ export default function Header() {
                 </span>
                 <Button
                   variant="ghost"
-                  size="sm"
+                  size="icon"
                   onClick={handleLogout}
-                  className="text-sm"
+                  className="text-gray-700 dark:text-white hover:text-red-600 transition"
                 >
-                  Logout
+                  <LogOut className="w-5 h-5" />
                 </Button>
               </div>
             </div>
+
           </div>
         </div>
       </header>
@@ -118,6 +123,14 @@ export default function Header() {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
       />
+
+      <ViewPostsModal
+        isOpen={isViewModalOpen}
+        onClose={() => setIsViewModalOpen(false)} 
+        userId={user?.id || ''} // Ensure userId is valid before passing
+      />
+
+
     </>
   );
 }

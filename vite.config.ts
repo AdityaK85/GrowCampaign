@@ -2,6 +2,32 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
+import JavaScriptObfuscator from "javascript-obfuscator";
+
+// Custom Vite plugin to obfuscate after build
+function obfuscatorPlugin() {
+  return {
+    name: 'vite-obfuscator',
+    apply: 'build',
+    enforce: 'post',
+    generateBundle(options, bundle) {
+      for (const file in bundle) {
+        if (file.endsWith('.js')) {
+          const chunk = bundle[file];
+          if (chunk.type === 'chunk') {
+            const obfuscationResult = JavaScriptObfuscator.obfuscate(chunk.code, {
+              rotateStringArray: true,
+              stringArray: true,
+              stringArrayEncoding: ['rc4'], // Optional: makes it harder to reverse
+              stringArrayThreshold: 0.75,
+            });
+            chunk.code = obfuscationResult.getObfuscatedCode();
+          }
+        }
+      }
+    }
+  };
+}
 
 export default defineConfig({
   plugins: [
@@ -15,6 +41,7 @@ export default defineConfig({
           ),
         ]
       : []),
+    ...(process.env.NODE_ENV === "production" ? [obfuscatorPlugin()] : []), // Add obfuscation in production
   ],
   resolve: {
     alias: {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React , {useState}  from 'react';
 import { Heart, Share } from 'lucide-react';
 import { PostWithDetails } from '@shared/schema';
 
@@ -11,17 +11,43 @@ interface PostCardProps {
 
 export default function PostCard({ post, onClick, onLike, onShare }: PostCardProps) {
   const hashtags = post.hashtags ? post.hashtags.split(',').map(tag => tag.trim()).filter(Boolean) : [];
+  const [isLiked, setIsLiked] = useState(post.isLiked);
+  const [likesCount, setLikesCount] = useState(post.likesCount);
   const displayName = post.user.firstName && post.user.lastName 
     ? `${post.user.firstName} ${post.user.lastName}`
     : post.user.email || 'Anonymous';
 
-  const handleLike = (e: React.MouseEvent) => {
+  // const handleLike = (e: React.MouseEvent) => {
+  //   e.stopPropagation();
+  //   onLike();
+  // };
+
+  const handleLike = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    onLike();
+    try {
+      await onLike(); // no args
+      setIsLiked(prev => !prev);
+      setLikesCount(prev => isLiked ? prev - 1 : prev + 1);
+    } catch (err) {
+      console.error("Error handling like:", err);
+    }
   };
+
+  // const handleShare = (e: React.MouseEvent) => {
+  //   // e.stopPropagation();
+  //   // onShare();
+  //   e.stopPropagation();
+  //   const shareUrl = `${window.location.origin}/shared-post?id=${post.id}`;
+  //   navigator.clipboard.writeText(shareUrl);
+  //   // alert('Link copied to clipboard!');
+  //   onShare();
+  // };
 
   const handleShare = (e: React.MouseEvent) => {
     e.stopPropagation();
+    // const shareUrl = `${window.location.origin}/shared-post?id=${post.id}`;
+    // console.log('--------------share url------------', shareUrl)
+    // navigator.clipboard.writeText(shareUrl);
     onShare();
   };
 
@@ -53,18 +79,16 @@ export default function PostCard({ post, onClick, onLike, onShare }: PostCardPro
             ))}
           </div>
         )}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between" style={{gap:'12px'}} >
           <div className="flex items-center space-x-3">
             <button 
               onClick={handleLike}
               className={`flex items-center space-x-1 transition-colors ${
-                post.isLiked 
-                  ? 'text-red-500' 
-                  : 'text-gray-500 hover:text-red-500'
+                isLiked ? 'text-red-500' : 'text-gray-500 hover:text-red-500'
               }`}
             >
-              <Heart className={`w-4 h-4 ${post.isLiked ? 'fill-current' : ''}`} />
-              <span className="text-sm">{post.likesCount}</span>
+              <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
+              <span className="text-sm">{likesCount}</span>
             </button>
             <button 
               onClick={handleShare}

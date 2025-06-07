@@ -33,6 +33,11 @@ export interface IStorage {
   
   // Share operations
   logShare(shareData: InsertShareLog): Promise<void>;
+  
+  // Notification operations
+  createNotification(notification: InsertNotification): Promise<Notification>;
+  getNotifications(userId: string, limit?: number): Promise<Notification[]>;
+  markNotificationAsRead(notificationId: number, userId: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -41,6 +46,7 @@ export class DatabaseStorage implements IStorage {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
   }
+  
 
   async upsertUser(userData: UpsertUser): Promise<User> {
     const [user] = await db
@@ -115,6 +121,65 @@ export class DatabaseStorage implements IStorage {
     }));
   }
 
+  async getPostsByUserId(
+      userId: string,
+      limit = 20,
+      offset = 0,
+      search?: string
+    ): Promise<PostWithDetails[]> {
+      let baseQuery = db
+        .select({
+          id: posts.id,
+          userId: posts.userId,
+          title: posts.title,
+          description: posts.description,
+          hashtags: posts.hashtags,
+          imageUrl: posts.imageUrl,
+          link: posts.link,
+          notifyEmail: posts.notifyEmail,
+          createdAt: posts.createdAt,
+          user: {
+            id: users.id,
+            email: users.email,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            profileImageUrl: users.profileImageUrl,
+            createdAt: users.createdAt,
+            updatedAt: users.updatedAt,
+          },
+          likesCount: sql<number>`CAST(COUNT(${likes.id}) AS INTEGER)`,
+        })
+        .from(posts)
+        .leftJoin(users, eq(posts.userId, users.id))
+        .leftJoin(likes, eq(posts.id, likes.postId))
+        .where(eq(posts.userId, userId)); // Filter by userId
+
+      if (search) {
+        baseQuery = baseQuery.where(
+          and(
+            eq(posts.userId, userId),
+            or(
+              like(posts.title, `%${search}%`),
+              like(posts.description, `%${search}%`),
+              like(posts.hashtags, `%${search}%`)
+            )
+          )
+        );
+      }
+
+      const result = await baseQuery
+        .groupBy(posts.id, users.id)
+        .orderBy(desc(posts.createdAt))
+        .limit(limit)
+        .offset(offset);
+
+      return result.map(row => ({
+        ...row,
+        user: row.user!,
+      }));
+    }
+
+
   async getPost(id: number): Promise<PostWithDetails | undefined> {
     const [result] = await db
       .select({
@@ -153,11 +218,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deletePost(id: number, userId: string): Promise<boolean> {
-    const result = await db
+    // First, delete likes associated with the post
+    const likesDeleteResult = await db
+      .delete(likes)
+      .where(eq(likes.postId, id));
+
+    // Now, delete the post itself
+    const postDeleteResult = await db
       .delete(posts)
       .where(and(eq(posts.id, id), eq(posts.userId, userId)));
-    
-    return (result.rowCount ?? 0) > 0;
+
+    // If both the post and likes are deleted, return true
+    return (likesDeleteResult.rowCount ?? 0) > 0 || (postDeleteResult.rowCount ?? 0) > 0;
   }
 
   // Like operations
