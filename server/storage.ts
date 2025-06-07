@@ -17,6 +17,17 @@ import {
 import { db } from "./db";
 import { eq, desc, and, sql, or, like } from "drizzle-orm";
 
+type TrendingHashtag = {
+  hashtag: string;
+  count: number;
+  commonUsers: {
+    userId: number;
+    firstName: string;
+    lastName: string;
+    profileImageUrl: string | null;
+  }[];
+};
+
 export interface IStorage {
   // User operations (required for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
@@ -216,6 +227,54 @@ export class DatabaseStorage implements IStorage {
       user: result.user!,
     };
   }
+  async getTrendingHashtags(limit: number): Promise<TrendingHashtag[]> {
+    const rows = await db
+      .select({
+        hashtag: sql<string>`unnest(string_to_array(${posts.hashtags}, ','))`,
+        count: sql<number>`COUNT(*)`,
+        userId: posts.userId,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        profileImageUrl: users.profileImageUrl,
+      })
+      .from(posts)
+      .leftJoin(users, eq(posts.userId, users.id))
+      .groupBy(sql`unnest(string_to_array(${posts.hashtags}, ',')), ${posts.userId}, ${users.id}`)
+      .orderBy(sql`COUNT(*) DESC`)
+      .limit(limit * 5); // Overfetch to ensure grouping coverage
+
+    const map = new Map<string, TrendingHashtag>();
+
+    for (const row of rows) {
+      if (!row.hashtag) continue;
+      const existing = map.get(row.hashtag);
+      if (existing) {
+        existing.count += row.count;
+        existing.commonUsers.push({
+          userId: row.userId,
+          firstName: row.firstName,
+          lastName: row.lastName,
+          profileImageUrl: row.profileImageUrl,
+        });
+      } else {
+        map.set(row.hashtag, {
+          hashtag: row.hashtag,
+          count: row.count,
+          commonUsers: [{
+            userId: row.userId,
+            firstName: row.firstName,
+            lastName: row.lastName,
+            profileImageUrl: row.profileImageUrl,
+          }],
+        });
+      }
+    }
+
+    return Array.from(map.values())
+      .sort((a, b) => b.count - a.count)
+      .slice(0, limit);
+  }
+
 
   async deletePost(id: number, userId: string): Promise<boolean> {
     // First, delete likes associated with the post

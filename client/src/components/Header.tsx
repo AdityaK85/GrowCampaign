@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
-import { Search, Bell, Plus, Moon, Sun } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Search, Bell, Plus, Moon, Sun, LogOut, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from './ThemeProvider';
 import CreatePostModal from './CreatePostModal';
-import { LogOut, Eye } from 'lucide-react';
 import ViewPostsModal from './ViewPostsModal';
 
 export default function Header() {
@@ -14,20 +13,44 @@ export default function Header() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [trendingHashtags, setTrendingHashtags] = useState<{ hashtag: string; count: number }[]>([]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // Trigger search by updating the query in the URL or parent component
     window.dispatchEvent(new CustomEvent('search', { detail: searchQuery }));
   };
 
-  const displayName = user?.firstName && user?.lastName 
-    ? `${user.firstName} ${user.lastName}`
-    : user?.email || 'User';
+  // Updated handleSearch to accept query string for hashtags
+  const handleHashtagClick = (hashtag: string) => {
+    setSearchQuery(`#${hashtag}`);
+    window.dispatchEvent(new CustomEvent('search', { detail: `${hashtag}` }));
+  };
+
+  const displayName =
+    user?.firstName && user?.lastName
+      ? `${user.firstName} ${user.lastName}`
+      : user?.email || 'User';
 
   const handleLogout = () => {
     window.location.href = '/api/logout';
   };
+
+  useEffect(() => {
+    const fetchTrendingHashtags = async () => {
+      try {
+        const res = await fetch('/api/trending_hashtags?limit=20');
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const data = await res.json();
+        setTrendingHashtags(data);
+      } catch (err) {
+        console.error('Failed to load trending hashtags:', err);
+      }
+    };
+
+    fetchTrendingHashtags();
+  }, []);
 
   return (
     <>
@@ -58,7 +81,6 @@ export default function Header() {
 
             {/* Navigation */}
             <div className="flex items-center gap-4">
-              {/* Theme Toggle */}
               <Button
                 variant="ghost"
                 size="icon"
@@ -72,7 +94,6 @@ export default function Header() {
                 )}
               </Button>
 
-              {/* Create Post Button */}
               <Button
                 onClick={() => setIsCreateModalOpen(true)}
                 size="icon"
@@ -81,19 +102,17 @@ export default function Header() {
                 <Plus className="w-5 h-5" />
               </Button>
 
-              {/* My Post Button (View Posts) */}
               <Button
                 variant="ghost"
                 size="sm"
-                className="flex items-center gap-3 bg-gray-100 dark:bg-gray-800 px-3  rounded-lg"
+                className="flex items-center gap-3 bg-gray-100 dark:bg-gray-800 px-3 rounded-lg"
                 onClick={() => setIsViewModalOpen(true)}
               >
                 <Eye className="w-4 h-4" />
                 <span className="text-sm">My Post</span>
               </Button>
 
-              {/* Profile Section */}
-              <div className="flex items-center gap-3 bg-gray-100 dark:bg-gray-800 px-3  rounded-lg">
+              <div className="flex items-center gap-3 bg-gray-100 dark:bg-gray-800 px-3 rounded-lg">
                 {user?.profileImageUrl && (
                   <img
                     src={user.profileImageUrl}
@@ -114,10 +133,28 @@ export default function Header() {
                 </Button>
               </div>
             </div>
-
           </div>
         </div>
       </header>
+
+      {/* Trending Hashtags Marquee */}
+      {trendingHashtags.length > 0 && (
+        <div className="py-2 overflow-hidden">
+          <div className="animate-marquee-wrapper">
+            <div className="animate-marquee whitespace-nowrap flex items-center gap-4 px-4">
+              {trendingHashtags.map((tag, idx) => (
+                <span
+                  key={idx}
+                  className="inline-block text-xs font-semibold px-3 py-1 rounded-full shadow hover:scale-105 transition cursor-pointer"
+                  onClick={() => handleHashtagClick(tag.hashtag)} // Add onClick event for each hashtag
+                >
+                  #{tag.hashtag}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       <CreatePostModal
         isOpen={isCreateModalOpen}
@@ -126,11 +163,38 @@ export default function Header() {
 
       <ViewPostsModal
         isOpen={isViewModalOpen}
-        onClose={() => setIsViewModalOpen(false)} 
-        userId={user?.id || ''} // Ensure userId is valid before passing
+        onClose={() => setIsViewModalOpen(false)}
+        userId={user?.id || ''}
       />
 
+      {/* Marquee keyframes */}
+      <style jsx>{`
+        .animate-marquee-wrapper {
+          width: 100%;
+          overflow: hidden;
+        }
 
+        .animate-marquee {
+          display: flex;
+          animation: marquee 40s linear infinite; /* Slow down the speed further by increasing the duration */
+        }
+
+        /* Marquee keyframe */
+        @keyframes marquee {
+          0% {
+            transform: translateX(100%);
+          }
+          100% {
+            transform: translateX(-100%);
+          }
+        }
+
+        /* Stop the animation on hover */
+        .animate-marquee-wrapper:hover .animate-marquee {
+          animation-play-state: paused;
+          cursor: pointer;
+        }
+      `}</style>
     </>
   );
 }

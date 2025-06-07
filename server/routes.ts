@@ -84,6 +84,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/trending_hashtags", async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 20;
+
+      const trendingHashtags = await storage.getTrendingHashtags(limit);
+      res.json(trendingHashtags);
+    } catch (error) {
+      console.error("Error fetching trending hashtags:", error);
+      res.status(500).json({ message: "Failed to fetch trending hashtags" });
+    }
+  });
+
   app.get("/api/posts/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
