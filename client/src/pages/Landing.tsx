@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 export default function Landing() {
   const handleLogin = () => {
 
+    // const redirectUri = "http://localhost:5000/api/callback";
     const redirectUri = "https://growcampaign.onrender.com/api/callback";
     window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=734802701574-fidqs45jr50pj35mmvsps46e50uitqll.apps.googleusercontent.com&redirect_uri=${redirectUri}&scope=openid%20email%20profile&access_type=offline&prompt=consent`;
   };
